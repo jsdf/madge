@@ -336,4 +336,75 @@ describe('API', () => {
 				.catch(done);
 		});
 	});
+
+	describe('cacheFile', () => {
+		let cacheFilePath;
+
+		beforeEach(() => {
+			cacheFilePath = path.join(os.tmpdir(), 'madge_cache_' + Date.now() + '.json');
+		});
+
+		afterEach(() => {
+			return fs.unlink(cacheFilePath).catch(() => {});
+		});
+
+		it('creates cache file on first run', async () => {
+			await madge(__dirname + '/cjs/a.js', {cacheFile: cacheFilePath});
+
+			const exists = await fs.exists(cacheFilePath);
+			exists.should.be.true();
+
+			const cacheContent = JSON.parse(await fs.readFile(cacheFilePath, 'utf8'));
+			cacheContent.should.have.property('version', 1);
+			cacheContent.should.have.property('entries');
+			Object.keys(cacheContent.entries).length.should.equal(3);
+		});
+
+		it('returns correct results when using cache', async () => {
+			// First run - populate cache
+			const res1 = await madge(__dirname + '/cjs/a.js', {cacheFile: cacheFilePath});
+			res1.obj().should.eql({
+				'a.js': ['b.js', 'c.js'],
+				'b.js': ['c.js'],
+				'c.js': []
+			});
+
+			// Second run - use cache
+			const res2 = await madge(__dirname + '/cjs/a.js', {cacheFile: cacheFilePath});
+			res2.obj().should.eql({
+				'a.js': ['b.js', 'c.js'],
+				'b.js': ['c.js'],
+				'c.js': []
+			});
+		});
+
+		it('stores absolute paths in cache with mtime', async () => {
+			await madge(__dirname + '/cjs/a.js', {cacheFile: cacheFilePath});
+
+			const cacheContent = JSON.parse(await fs.readFile(cacheFilePath, 'utf8'));
+
+			for (const filePath in cacheContent.entries) {
+				// File path should be absolute
+				path.isAbsolute(filePath).should.be.true();
+
+				const entry = cacheContent.entries[filePath];
+				entry.should.have.property('mtime');
+				entry.should.have.property('dependencies');
+				entry.mtime.should.be.a.Number();
+				entry.dependencies.should.be.an.Array();
+			}
+		});
+
+		it('handles circular dependencies correctly with cache', async () => {
+			// First run - populate cache
+			const res1 = await madge(__dirname + '/cjs/circular/a.js', {cacheFile: cacheFilePath});
+			const circular1 = res1.circular();
+
+			// Second run - use cache
+			const res2 = await madge(__dirname + '/cjs/circular/a.js', {cacheFile: cacheFilePath});
+			const circular2 = res2.circular();
+
+			circular1.should.eql(circular2);
+		});
+	});
 });

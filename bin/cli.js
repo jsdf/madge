@@ -32,6 +32,7 @@ program
 	.option('--require-config <file>', 'path to RequireJS config')
 	.option('--webpack-config <file>', 'path to webpack config')
 	.option('--ts-config <file>', 'path to typescript config')
+	.option('--cache-file <file>', 'path to cache file for mtime-based dependency caching')
 	.option('--include-npm', 'include shallow NPM modules', false)
 	.option('--no-color', 'disable color in output and image', false)
 	.option('--no-spinner', 'disable progress spinner', false)
@@ -111,6 +112,10 @@ if (program.webpackConfig) {
 
 if (program.tsConfig) {
 	config.tsConfig = program.tsConfig;
+}
+
+if (program.cacheFile) {
+	config.cacheFile = program.cacheFile;
 }
 
 if (program.includeNpm) {
