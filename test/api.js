@@ -351,8 +351,8 @@ describe('API', () => {
 		it('creates cache file on first run', async () => {
 			await madge(__dirname + '/cjs/a.js', {cacheFile: cacheFilePath});
 
-			const exists = await fs.exists(cacheFilePath);
-			exists.should.be.true();
+			const stat = await fs.stat(cacheFilePath);
+			stat.isFile().should.be.true();
 
 			const cacheContent = JSON.parse(await fs.readFile(cacheFilePath, 'utf8'));
 			cacheContent.should.have.property('version', 1);
@@ -390,8 +390,8 @@ describe('API', () => {
 				const entry = cacheContent.entries[filePath];
 				entry.should.have.property('mtime');
 				entry.should.have.property('dependencies');
-				entry.mtime.should.be.a.Number();
-				entry.dependencies.should.be.an.Array();
+				entry.mtime.should.be.a.Number;
+				entry.dependencies.should.be.an.Array;
 			}
 		});
 
