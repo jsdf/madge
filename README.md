@@ -217,6 +217,7 @@ Property | Type | Default | Description
 `requireConfig` | String | null | RequireJS config for resolving aliased modules
 `webpackConfig` | String | null | Webpack config for resolving aliased modules
 `tsConfig` | String\|Object | null | TypeScript config for resolving aliased modules - Either a path to a tsconfig file or an object containing the config
+`cacheFile` | String | null | Path to a JSON file for caching dependency information. When provided, madge will cache discovered dependencies with their file modification times (mtime). On subsequent runs, only files that have been modified will be re-analyzed, significantly improving performance for large codebases.
 `layout` | String | dot | Layout to use in the graph
 `rankdir` | String | LR | Sets the [direction](https://graphviz.gitlab.io/_pages/doc/info/attrs.html#d:rankdir) of the graph layout
 `fontName` | String | Arial | Font name to use in the graph
@@ -352,6 +353,12 @@ madge --dot path/src/app.js > graph.gv
 
 ```sh
 madge --json path/src/app.js | tr '[a-z]' '[A-Z]' | madge --stdin
+```
+
+> Using mtime-based cache for faster subsequent runs
+
+```sh
+madge --cache-file .madge-cache.json path/src/app.js
 ```
 
 # Debugging
